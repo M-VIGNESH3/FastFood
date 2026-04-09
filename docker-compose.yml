@@ -1,0 +1,97 @@
+version: '3.8'
+services:
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data: /data/db
+    networks:
+      - fastfood-networks
+
+  user-services:
+    build: ./user-services
+    container_name: user-services
+    ports:
+      - "5001:5001"
+    networks:
+      - fastfood-networks
+    depends_on:
+      - mongodb
+    environment:
+      - PORT=5001
+      - MONGO_URI=mongodb://mongodb:27017/food_delivery_users
+      - JWT_SECRET=jwt_secret_key_2024
+      - JWT_EXPIRE=7d
+
+  restaurant-services:
+    build: ./restaurant-services
+    container_name: restaurant-services
+    ports:
+      - "5002:5002"
+    networks:
+      - fastfood-networks
+    depends_on:
+      - mongodb
+    environment:
+      - PORT=5002
+      - MONGO_URI=mongodb://mongodb:27017/food_delivery_restaurants
+      - JWT_SECRET=jwt_secret_key_2024
+      - JWT_EXPIRE=7d
+
+  order-services:
+    build: ./order-services
+    container_name: order-services
+    ports:
+      - "5003:5003"
+    networks:
+      - fastfood-networks
+    depends_on:
+      - mongodb
+    environment:
+      - PORT=5003
+      - MONGO_URI=mongodb://mongodb:27017/food_delivery_orders
+      - JWT_SECRET=jwt_secret_key_2024
+      - JWT_EXPIRE=7d
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "5000:5000"
+    networks:
+      - fastfood-networks
+    depends_on:
+      - user-services
+      - restaurant-services
+      - order-services
+    environment:
+      - PORT=5000
+      - USER_SERVICE_URL=http://user-services:5001
+      - RESTAURANT_SERVICE_URL=http://restaurant-services:5002
+      - ORDER_SERVICE_URL=http://order-services:5003
+      - JWT_SECRET=jwt_secret_key_2024
+      - JWT_EXPIRE=7d
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - fastfood-networks
+    depends_on:
+      - api-gateway
+    environment:
+      - PORT=3000
+      - API_URL=http://api-gateway:5000
+      - JWT_SECRET=jwt_secret_key_2024
+      - JWT_EXPIRE=7d
+
+volumes:
+  mongo-data:
+    driver: local
+networks:
+  food-network:
+    driver: bridge
