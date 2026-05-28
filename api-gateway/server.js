@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const dotenv = require('dotenv');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -170,6 +171,18 @@ app.use(
     },
   })
 );
+
+// Serve static assets from frontend build
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// Serve index.html for all other routes to support React SPA routing
+app.get('*', (req, res, next) => {
+  if (req.accepts('html')) {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  } else {
+    next();
+  }
+});
 
 // 404 handler
 app.use('*', (req, res) => {

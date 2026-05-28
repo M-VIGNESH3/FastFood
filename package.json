@@ -1,0 +1,15 @@
+{
+  "name": "fastfood-platform",
+  "version": "1.0.0",
+  "description": "Fast Food Delivery Platform - Unified Deployable Node App",
+  "scripts": {
+    "install:all": "npm install --prefix user-service && npm install --prefix restaurant-service && npm install --prefix order-service && npm install --prefix api-gateway && npm install --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "build": "npm run build:frontend",
+    "postinstall": "npm run install:all && npm run build:frontend",
+    "start": "node start-all.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
